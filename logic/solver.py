@@ -1,47 +1,61 @@
-def bubble_max_row(m, col):
-    max_element = m[col][col]
-    max_row = col
-    for i in range(col + 1, len(m)):
-        if abs(m[i][col]) > abs(max_element):
-            max_element = m[i][col]
-            max_row = i
-    if max_row != col:
-        m[col], m[max_row] = m[max_row], m[col]
+EPS = 0.00000000001
 
+def solve_gauss(matrix: list):
+    rows: int = len(matrix)
+    columns: int = len(matrix[0]) - 1
 
-def solve_gauss(m):
-    result = ''
-    n = len(m)
-    # forward trace
-    for k in range(n - 1):
-        bubble_max_row(m, k)
-        for i in range(k + 1, n):
-            div = m[i][k] / m[k][k]
-            m[i][-1] -= div * m[k][-1]
-            for j in range(k, n):
-                m[i][j] -= div * m[k][j]
+    # Заполняем массив, который для каждого столбца будет содержать строку опорного элемента, или -1 если его нет
+    where: list = [False for _ in range(columns)]
+    for col in range(columns):
 
-    # check modified system for nonsingularity
-    if is_singular(m):
-        return 'The system has infinite number of answers...'
+        # Выбираем главную строку по максимальному элементу столбца
+        pivot: int = col
+        for lower_row in range(col, rows):
+            if abs(matrix[lower_row][col]) > abs(matrix[pivot][col]): 
+                pivot = lower_row
+            
+        # Проверяем является ли наш опорный элемент 0 или близким к 0 
+        if abs(matrix[pivot][col]) < EPS:
+            continue
 
-    # backward trace
-    x = [0 for _ in range(n)]
-    for k in range(n - 1, -1, -1):
-        x[k] = (m[k][-1] - sum([m[k][j] * x[j] for j in range(k + 1, n)])) / m[k][k]
+        # Если наш опорный элемент таковым не оказался, то поднимаем строку вверх
+        for right_column in range(columns + 1):
+            matrix[pivot][right_column], matrix[col][right_column] = matrix[col][right_column], matrix[pivot][right_column]
+            where[col] = True
 
-    for i in range(len(x) - 1):
-        result += f'x{i+1} = {x[i]}, '
-        result += f'x{len(x)} = {x[len(x) - 1]}'
+        # Далее зануляем всю нижнюю часть столбца
+        for row in range(rows):
+            if row != col:
+                factor: float = matrix[row][col] / matrix[col][col]
+                for right_column in range(col, columns + 1):
+                    matrix[row][right_column] -= matrix[col][right_column] * factor
+
+    # Проверяем имеет ли система бесконечное количество решений
+    for col in range(columns):
+        if not where[col]:
+            return 'Система имеет бесконечное количество решений'
+    
+    # Выясняем решения системы
+    answer: list = [0 for _ in range(columns)]
+    
+    # Для каждой переменной пытаемся найти ответ
+    for col in range(columns):
+        answer[col] = matrix[col][columns] / matrix[col][col]
+
+    # Проверяем есть ли решения у системы
+    for row in range(rows):
+
+        # Ищем сумму корней умноженных на коэффиценты
+        sum: float = 0
+        for col in range(columns):
+            sum += answer[col] * matrix[row][col]
+
+        # Сравниваем их со свободным членом. Если разница достаточно велика, то решений у системы нет
+        if abs(sum - matrix[row][columns]) > EPS:
+            return 'Система не имеет решений'
+    
+    # Если система имеет ровно 1 решение, то выводим его
+    result: str = ''
+    for item in range(len(answer)):
+        result += f'x{item + 1} = {answer[item]}, '
     return result
-
-
-def is_singular(m):
-    """Check matrix for nonsingularity.
-    :param m: matrix (list of lists)
-    :return: True if system is nonsingular
-    """
-    for i in range(len(m)):
-        if not m[i][i]:
-            return True
-    return False
