@@ -1,25 +1,28 @@
-from tkinter import *
-from tkinter import ttk
-from tkinter import filedialog
-from tkinter import messagebox as mb
+from tkinter import Tk, ttk, filedialog, messagebox as mb, StringVar
 
-from tableinput import SimpleTableInput
-from solver import solve_gauss
-from matrix import validate_matrix, read_from_file
+from window_components.slaeinput import SimpleSlaeInput
+from logic.solver import solve_gauss
+from logic.matrix import validate_matrix, read_from_file
 
 
-class GaussWindow:
+class GaussWindow(Tk):
     def __init__(self):
 
         # Задаем параметры для главного окна
-        self.root_window = Tk()
-        self.root_window.iconbitmap(default='gauss.ico')
-        self.root_window.title('SLAE solver')
-        self.root_window.resizable(False, False)
+        super().__init__()
+        self.title('SLAE solver')
+        self.resizable(False, False)
 
-        '''Создаём и располагаем виджеты на окне'''
+        # Создаём и размещаем компоненты на окне 
+        self.init_window()
 
-        # Размещаем надпись размерности
+        # Запускаем приложение
+        self.mainloop()
+
+    # Функция создаёт и размещает виджеты на окне
+    def init_window(self):
+
+        # Надпись "Dimension"
         dimension_label = ttk.Label(text='Dimension: ')
         dimension_label.grid(
             row=0,
@@ -28,11 +31,11 @@ class GaussWindow:
             pady=10
         )
 
-        # Создаём поле ввода размерности и настраиваем валидацию
+        # Поле ввода размерности
         self.current_dimension = StringVar(value='3')
-        validate_cmd = self.root_window.register(self.validate_dimension)
+        validate_cmd = self.register(self.validate_dimension)
         self.dimension_entry = ttk.Spinbox(
-            self.root_window,
+            self,
             from_=2,
             to=6,
             textvariable=self.current_dimension,
@@ -49,7 +52,7 @@ class GaussWindow:
         )
 
         # Создаем заголовок метода
-        method_label = ttk.Label(self.root_window, text='Method: ')
+        method_label = ttk.Label(self, text='Method: ')
         method_label.grid(
             row=0,
             column=2,
@@ -61,7 +64,7 @@ class GaussWindow:
         self.methods = ['Метод Гаусса', 'Метод релаксации']
         self.current_method = StringVar(value=self.methods[0])
         self.method_combobox = ttk.Combobox(
-            self.root_window,
+            self,
             values=self.methods,
             textvariable=self.current_method,
             state='readonly'
@@ -74,11 +77,11 @@ class GaussWindow:
         )
 
         # Обозначаем поле вывода ошибок (будет выводиться при возникновении)
-        self.error_label = ttk.Label(self.root_window, foreground='#FF0000')
+        self.error_label = ttk.Label(self, foreground='#FF0000')
 
         # Создаем фрейм матрицы
-        self.current_matrix_grid = SimpleTableInput(
-            self.root_window,
+        self.current_matrix_grid = SimpleSlaeInput(
+            self,
             int(self.current_dimension.get()),
             int(self.current_dimension.get()) + 1
         )
@@ -90,7 +93,7 @@ class GaussWindow:
         )
 
         # Создаем кнопку, которая будет запускать решение
-        self.solve_button = ttk.Button(self.root_window, text='Solve', command=self.on_button_click)
+        self.solve_button = ttk.Button(self, text='Solve', command=self.on_solve_click)
         self.solve_button.grid(
             row=2,
             column=0,
@@ -98,7 +101,7 @@ class GaussWindow:
             pady=10
         )
 
-        self.load_button = ttk.Button(self.root_window, text='Load from file', command=self.on_load)
+        self.load_button = ttk.Button(self, text='Load from file', command=self.on_load_click)
         self.load_button.grid(
             row=2,
             column=1,
@@ -106,16 +109,13 @@ class GaussWindow:
             pady=10
         )
 
-        # Запускаем окно
-        self.root_window.mainloop()
-
-    # Функция, которая будет перерисовывать матрицу при изменении размерности
+    # Функция изменения фрейма матрицы при изменении размерности пользователем
     def on_dimension_entry_change(self, *args):
         self.current_dimension.set(self.dimension_entry.get())
         self.current_matrix_grid.destroy()
         if self.current_dimension.get() != '':
-            self.current_matrix_grid = SimpleTableInput(
-                self.root_window,
+            self.current_matrix_grid = SimpleSlaeInput(
+                self,
                 int(self.current_dimension.get()),
                 int(self.current_dimension.get()) + 1)
             self.current_matrix_grid.grid(
@@ -125,7 +125,7 @@ class GaussWindow:
                 pady=10
             )
 
-    # Функция, которая проверяет введенное значение размерности и выводит ошибки
+    # Функция осуществляет валидацию введенной размерности 
     def validate_dimension(self, p):
         if str.isdigit(p) and int(p) in range(2, 7):
             return True
@@ -140,9 +140,10 @@ class GaussWindow:
             return True
         return False
 
-    def on_load(self):
+    # Функция вызывается при нажатии на кнопку загрузки матрицы
+    def on_load_click(self):
         ftypes = [('Текстовый документ', '*.txt')]
-        dlg = filedialog.Open(self.root_window, filetypes=ftypes)
+        dlg = filedialog.Open(self, filetypes=ftypes)
         fl = dlg.show()
 
         if fl != '':
@@ -155,6 +156,11 @@ class GaussWindow:
             self.current_matrix_grid.set(matrix)
             return
 
-    def on_button_click(self):
-        answer = solve_gauss(self.current_matrix_grid.get())
-        mb.showinfo('Решение', answer)
+    # Функция вызывается при нажатии на кнопку решения системы
+    def on_solve_click(self):
+        if self.current_matrix_grid.validate_input():
+            print(self.current_matrix_grid.get())
+            answer = solve_gauss(self.current_matrix_grid.get())
+            mb.showinfo('Решение', answer)
+        else: 
+            mb.showerror('Ошибка', 'Матрица введена не полностью')

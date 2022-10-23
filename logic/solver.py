@@ -10,7 +10,7 @@ def bubble_max_row(m, col):
 
 
 def solve_gauss(m):
-    result = 'Решение системы: '
+    result = ''
     n = len(m)
     # forward trace
     for k in range(n - 1):
