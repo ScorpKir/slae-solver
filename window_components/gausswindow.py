@@ -1,7 +1,9 @@
+from calendar import c
 from tkinter import Tk, ttk, filedialog, messagebox as mb, StringVar
 
 from window_components.slaeinput import SimpleSlaeInput
-from logic.solver import solve_gauss
+from logic.gauss import solve_gauss
+from logic.relax import solve_relaxation
 from logic.matrix import validate_matrix, read_from_file
 
 
@@ -63,6 +65,7 @@ class GaussWindow(Tk):
         # Создаем поле ввода метода
         self.methods = ['Метод Гаусса', 'Метод релаксации']
         self.current_method = StringVar(value=self.methods[0])
+        self.solver = solve_gauss
         self.method_combobox = ttk.Combobox(
             self,
             values=self.methods,
@@ -75,6 +78,7 @@ class GaussWindow(Tk):
             padx=10,
             pady=10
         )
+        self.method_combobox.bind('<<ComboboxSelected>>', self.on_change_method)
 
         # Обозначаем поле вывода ошибок (будет выводиться при возникновении)
         self.error_label = ttk.Label(self, foreground='#FF0000')
@@ -159,8 +163,19 @@ class GaussWindow(Tk):
     # Функция вызывается при нажатии на кнопку решения системы
     def on_solve_click(self):
         if self.current_matrix_grid.validate_input():
-            print(self.current_matrix_grid.get())
-            answer = solve_gauss(self.current_matrix_grid.get())
+            answer = self.solver(self.current_matrix_grid.get())
             mb.showinfo('Решение', answer)
         else: 
             mb.showerror('Ошибка', 'Матрица введена не полностью')
+
+    def on_change_method(self, event):
+        if self.current_method.get() == self.methods[0]:
+            print(1)
+            self.solver = solve_gauss
+            return
+        if self.current_method.get() == self.methods[1]:
+            print(2)
+            self.solver = solve_relaxation
+            return
+        self.solver = solve_gauss
+        return

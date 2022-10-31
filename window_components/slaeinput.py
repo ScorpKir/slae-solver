@@ -46,15 +46,15 @@ class SimpleSlaeInput(ttk.Frame):
     
     def set(self, matrix):
         for row in range(self.rows):
-            for column in range(0, self.columns, 2):
+            for column in range(0, self.columns + 1, 2):
                 index = (row, column)
                 self._entry[index].delete(0, END)
-                self._entry[index].insert(0, str(matrix[row][column]))
+                print(f'{row} {column} {matrix[row][column]}')
+                self._entry[index].insert(0, str(matrix[row][column // 2]))
 
     def _validate(self, P):
         if P.strip() == '' or P.strip() == '-' or P.strip() == '.':
             return True
-
         try:
             f = float(P)
         except ValueError:
