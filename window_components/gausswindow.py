@@ -162,7 +162,7 @@ class GaussWindow(Tk):
 
     # Функция вызывается при нажатии на кнопку решения системы
     def on_solve_click(self):
-        if self.current_matrix_grid.validate_input():
+        if self.current_matrix_grid.check_full_matrix_input():
             answer = self.solver(self.current_matrix_grid.get())
             mb.showinfo('Решение', answer)
         else: 
@@ -170,11 +170,9 @@ class GaussWindow(Tk):
 
     def on_change_method(self, event):
         if self.current_method.get() == self.methods[0]:
-            print(1)
             self.solver = solve_gauss
             return
         if self.current_method.get() == self.methods[1]:
-            print(2)
             self.solver = solve_relaxation
             return
         self.solver = solve_gauss

@@ -1,6 +1,7 @@
 def check_matrix_consistent(matrix: list):
     return True
 
+
 def solve_gauss(matrix: list):
     '''Функция решает СЛАУ (заданную в виде матрицы) методом Гаусса'''
     # Результат, который мы будем выводить
@@ -61,9 +62,14 @@ def solve_gauss(matrix: list):
         # Сравниваем их со свободным членом. Если разница достаточно велика, то решений у системы нет
         if abs(sum - matrix[row][dimension]) > EPS:
             return 'Система не имеет решений'
-
+        
     for row in matrix:
-        [result.join(str(elem) + ' ') for elem in row] + '\n'
+        for elem in row:
+            elem = round(elem, 2)
+
+    max_len = max([len(str(elem)) for row in matrix for elem in row])
+    for row in matrix:
+        result += str(list(map('{{:>{length}}}'.format(length=max_len).format, row))) + '\n'
 
     # Если система имеет ровно 1 решение, то выводим его
     result += 'Решение системы уравнений: \n'

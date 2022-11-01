@@ -13,21 +13,20 @@ def solve_relaxation(matrix: list):
     PARAMETER = 0.5
 
     # Инициализируем самый первый вектор невязки
-    previous_approx = [0 for _ in range(dimension)]
+    previous_approx = [0.0 for _ in range(dimension)]
 
     while True:
         
         # Инициализируем текущий вектор невязки 
-        current_approx = [0 for _ in range(dimension)]
+        current_approx = [0.0 for _ in range(dimension)]
 
         # Для каждой переменной найдем ее значение на текущей итерации
         for var in range(dimension):
             
-            # В соответствии с формулой инициализируем значение переменной на текущей итерации уже известными нам значениями
             current_approx[var] = matrix[var][dimension] * PARAMETER / matrix[var][var]
 
             # Находим недостающую часть суммы для нашей переменной, тоже в соответствии с формулой
-            for other in range(dimension):
+            for other in range(dimension):                    
                 if other < var:
                     current_approx[var] -= matrix[var][other] * current_approx[other] * PARAMETER / matrix[var][var]
                 if other > var:
@@ -58,3 +57,4 @@ def compare_arrays_equality(first: list, second: list, approximation: float):
         if abs(first[iter] - second[iter]) > approximation:
             return False
     return True
+    

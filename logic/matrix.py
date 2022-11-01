@@ -1,6 +1,3 @@
-from numpy import array
-
-
 def read_from_file(filepath: str):
     with open(filepath) as f:
         matrix = [list(map(float, row.split(' '))) for row in f.readlines()]
