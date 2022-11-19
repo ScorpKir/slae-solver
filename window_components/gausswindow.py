@@ -1,9 +1,9 @@
-from calendar import c
+import numpy as np
 from tkinter import Tk, ttk, filedialog, messagebox as mb, StringVar
 
 from window_components.slaeinput import SimpleSlaeInput
 from logic.gauss import solve_gauss
-from logic.relax import solve_relaxation
+from logic.sor import solve_sor
 from logic.matrix import validate_matrix, read_from_file
 
 
@@ -151,9 +151,7 @@ class GaussWindow(Tk):
         fl = dlg.show()
 
         if fl != '':
-            print(fl)
             matrix = read_from_file(fl)
-            print(matrix)
             if not validate_matrix(matrix, int(self.current_dimension.get())):
                 mb.showerror('Ошибка', 'Матрица в файле задана некорректно!')
                 return
@@ -163,7 +161,7 @@ class GaussWindow(Tk):
     # Функция вызывается при нажатии на кнопку решения системы
     def on_solve_click(self):
         if self.current_matrix_grid.check_full_matrix_input():
-            answer = self.solver(self.current_matrix_grid.get())
+            answer = self.solver(np.array(self.current_matrix_grid.get(), dtype=float))
             mb.showinfo('Решение', answer)
         else: 
             mb.showerror('Ошибка', 'Матрица введена не полностью')
@@ -173,7 +171,7 @@ class GaussWindow(Tk):
             self.solver = solve_gauss
             return
         if self.current_method.get() == self.methods[1]:
-            self.solver = solve_relaxation
+            self.solver = solve_sor
             return
         self.solver = solve_gauss
         return
