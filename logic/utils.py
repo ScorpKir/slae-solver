@@ -8,6 +8,14 @@ def answer_to_string(answer: np.array) -> str:
         return result
     return 'Решения не были найдены'
 
+def print_sor_statistics(vectors: np.array) -> None:
+    file = open('sor_log.txt', 'w+')
+    for step, item in enumerate(vectors):
+        string = f'Step {step}. Vector: {answer_to_string(item[:-1])}. Residual = {item[-1]} \n'
+        file.write(string)
+    file.close()
+    
+
 def dioganic_predominance(matrix: np.array) -> np.array:
     '''Функция приводит матрицу к диагональному преобладанию'''
     

@@ -1,0 +1,6 @@
+Step 0. Vector: | x1 = 0.0 | x2 = 0.0 | x3 = 0.0 | . Residual = 10.151847122568386 
+Step 1. Vector: | x1 = 4.24 | x2 = -0.01 | x3 = 3.41 | . Residual = 4.375588114457712 
+Step 2. Vector: | x1 = 2.62 | x2 = -0.71 | x3 = 2.4 | . Residual = 0.934737508769422 
+Step 3. Vector: | x1 = 2.95 | x2 = -0.53 | x3 = 2.58 | . Residual = 0.1392173858396789 
+Step 4. Vector: | x1 = 2.9 | x2 = -0.56 | x3 = 2.56 | . Residual = 0.013713098144167322 
+Step 5. Vector: | x1 = 2.9 | x2 = -0.55 | x3 = 2.56 | . Residual = 0.0004995206771648072 
