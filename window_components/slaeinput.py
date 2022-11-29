@@ -2,6 +2,7 @@ from tkinter import END, ttk
 
 class SimpleSlaeInput(ttk.Frame):
     '''Класс фрейма ввода системы уравнений'''
+    
     def __init__(self, parent, rows, columns):
         super().__init__(parent)
 

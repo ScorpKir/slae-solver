@@ -1,45 +1,40 @@
 import numpy as np
 
 def answer_to_string(answer: np.array) -> str:
+    '''Функция переводит массив с решением СЛАУ в строку для вывода на экран'''
+
     if answer is not None:
         result: str = '| '
         for var, value in enumerate(answer):
-            result += f'x{var + 1} = {round(value, 2)} | '
+            result += f'x{var + 1} = {round(value, 5)} | '
         return result
     return 'Решения не были найдены'
-
-def print_sor_statistics(vectors: np.array) -> None:
-    file = open('sor_log.txt', 'w+')
-    for step, item in enumerate(vectors):
-        string = f'Step {step}. Vector: {answer_to_string(item[:-1])}. Residual = {item[-1]} \n'
-        file.write(string)
-    file.close()
     
+def vector_to_string(vector: np.array) -> str:
+    '''Функция переводит вектор невязки в строку для вывода на экран или в файл'''
 
-def dioganic_predominance(matrix: np.array) -> np.array:
-    '''Функция приводит матрицу к диагональному преобладанию'''
+    result: str = '('
+    for var, value in enumerate(vector):
+        result += f'{round(value, 5)}; '
+    result = result[:-2] + ')'
+    return result
     
-    # Размерность матрицы
-    DIMENSION: int = len(matrix)
+def symmetrize_matrix(matrix: np.array) -> np.array:
+    '''Функция применяет симметризацию Гаусса к СЛАУ в виде матрицы'''
 
     # Столбец свободных членов
-    free_odds: np.array = matrix[:,-1]
+    free_odds: np.array = matrix[:, -1]
 
-    # Убираем из матрицы столбец свободных членов
-    matrix = matrix[:,0:-1]
+    # Отрезаем столбец свободных членов от матрицы
+    matrix = matrix[:, 0:-1]
 
-    # Получаем матрицу обратную нашей
-    inverse_matrix: np.array = np.linalg.inv(matrix)
+    # Транспонированная матрица коэффициентов
+    transp_matrix: np.array = np.transpose(matrix)
 
-    # Генерируем матрицу с диагональным преобладанием
-    complete_matrix: np.array = np.ones((DIMENSION, DIMENSION))
-    for var in range(DIMENSION): 
-        complete_matrix[var, var] += 7
-    
-    # Приводим нашу матрицу к той, что получилась на прошлом шаге
-    total = inverse_matrix.dot(complete_matrix)
-    matrix = matrix.dot(total)
-    free_odds = free_odds.dot(total)
+    # Умножаем столбец свободных членов и матрицу коэффициентов на транспонированную матрицу коэффициентов
+    free_odds = np.dot(free_odds, transp_matrix)
+    matrix = np.dot(matrix, transp_matrix)
 
-    # Конкатенируем столбец свободных членов к матрице
-    return np.c_[matrix, free_odds]
+    # Возващаем соединенную симметризированную матрицу коэффициентов и свободных членов
+    matrix = np.c_[matrix, free_odds]
+    return matrix

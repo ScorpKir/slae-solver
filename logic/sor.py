@@ -1,29 +1,34 @@
 import numpy as np
-from logic.utils import answer_to_string, print_sor_statistics
+from logic.utils import answer_to_string, vector_to_string, symmetrize_matrix
 
 def sor(matrix: np.array) -> np.array:
-    '''Функция решает СЛАУ (заданную в виде матрицы) методом релаксации'''
+    '''Функция решает СЛАУ (заданную в виде матрицы) методом релаксации и возвращает строку с информацией для вывода на дисплей.'''
 
     # Допустимая погрешность и параметр релаксации
     TOLERANCE: float = 0.001 
-    OMEGA: float = 0.9
-
+    OMEGA: float = 1.1
     # Размерность системы уравнений и столбец свободных членов
     DIMENSION: int = len(matrix)
     FREE_ODDS: np.array = matrix[:,-1]
 
     # Удаляем столбец свободных членов из полученной матрицы
     matrix = matrix[:, 0 : -1]
-    
+
     # Счетчик шагов и максимальное количество шагов
     step: int = 0
     MAX_STEPS: int = 1000
+
+    # Строка ответа
+    result: str = 'Результаты решения методом релаксации' + '\n' * 2
 
     # Самый первый вектор невязки
     guess: np.array = np.zeros(DIMENSION)
 
     # Суммарная ошибка на нулевом шаге
     residual = np.linalg.norm(np.dot(matrix, guess) - FREE_ODDS)
+
+    # Добавляем начальный вектор в ответ
+    result += f'Шаг {step}: {vector_to_string(guess)}. Ошибка = {residual} \n'
 
     # Вектора невязки
     vectors: np.array = [np.append(guess, residual)] 
@@ -46,31 +51,15 @@ def sor(matrix: np.array) -> np.array:
 
         # Если суммарная ошибка равна бесконечности, то метод не сходится
         if np.isinf(residual):
-            return vectors.reshape(-1, DIMENSION + 1)
-
-        # Добавляем вектор невязки в массив
-        vectors = np.append(vectors, np.append(guess, residual))
+            result += '-' * 50 + '\n' + 'Метод не сошелся.'  
+            return result
 
         # Увеличиваем шаг
         step += 1
 
-    return vectors.reshape(-1, DIMENSION + 1)
+        # Добавляем вектор в ответ
+        result += f'Шаг {step}: {vector_to_string(guess)}. Ошибка = {residual} \n'
 
-def solve_sor(matrix: np.array) -> str:
-    '''Функция запускает решение СЛАУ и формирует строки для вывода'''
-
-    # Допустимая погрешность
-    TOLERANCE: float = 0.001
-
-    # Вектора невязки
-    vectors = sor(matrix)
-
-    # Вывод информации по векторам невязки в файл
-    print_sor_statistics(vectors)
-
-    # Если ошибка на последнем векторе больше допустимой, то метод не сошелся
-    if vectors[-1][-1] > TOLERANCE:
-        return 'Метод не сошелся. Информация в файле sor_log.txt' 
-
-    # Если метод сошелся, то формируем строку для вывода
-    return answer_to_string(vectors[-1][:-1])
+    # Возвращаем
+    result += '-' * 50 + '\n' + f'Метод сошелся за {step} шагов.' + '\n' + f'Решение: {answer_to_string(guess)}.'
+    return result

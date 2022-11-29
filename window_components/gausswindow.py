@@ -2,30 +2,21 @@ import numpy as np
 from tkinter import Tk, ttk, filedialog, messagebox as mb, StringVar
 
 from window_components.slaeinput import SimpleSlaeInput
-from logic.gauss import solve_gauss
-from logic.sor import solve_sor
-from logic.matrix import validate_matrix, read_from_file
+from window_components.sor_log_window import AnswerWindow
+from logic.gauss import gauss
+from logic.sor import sor
 
 
 class GaussWindow(Tk):
     def __init__(self):
 
-        # Задаем параметры для главного окна
+        # Параметры для главного окна
         super().__init__()
         self.title('SLAE solver')
         self.resizable(False, False)
 
-        # Создаём и размещаем компоненты на окне 
-        self.init_window()
-
-        # Запускаем приложение
-        self.mainloop()
-
-    # Функция создаёт и размещает виджеты на окне
-    def init_window(self):
-
         # Надпись "Dimension"
-        dimension_label = ttk.Label(text='Dimension: ')
+        dimension_label: ttk.Label = ttk.Label(text='Dimension: ')
         dimension_label.grid(
             row=0,
             column=0,
@@ -34,9 +25,9 @@ class GaussWindow(Tk):
         )
 
         # Поле ввода размерности
-        self.current_dimension = StringVar(value='3')
-        validate_cmd = self.register(self.validate_dimension)
-        self.dimension_entry = ttk.Spinbox(
+        self.current_dimension: StringVar = StringVar(value='3')
+        validate_cmd: callable = self.register(self.validate_dimension)
+        self.dimension_entry: ttk.Spinbox = ttk.Spinbox(
             self,
             from_=2,
             to=6,
@@ -53,8 +44,8 @@ class GaussWindow(Tk):
             pady=10
         )
 
-        # Создаем заголовок метода
-        method_label = ttk.Label(self, text='Method: ')
+        # Заголовок метода
+        method_label: ttk.Label = ttk.Label(self, text='Method: ')
         method_label.grid(
             row=0,
             column=2,
@@ -62,11 +53,11 @@ class GaussWindow(Tk):
             pady=10
         )
 
-        # Создаем поле ввода метода
-        self.methods = ['Метод Гаусса', 'Метод релаксации']
-        self.current_method = StringVar(value=self.methods[0])
-        self.solver = solve_gauss
-        self.method_combobox = ttk.Combobox(
+        # Поле выбора метода
+        self.methods: list = ['Метод Гаусса', 'Метод релаксации']
+        self.current_method: StringVar = StringVar(value=self.methods[0])
+        self.solver: callable = gauss
+        self.method_combobox: ttk.Combobox = ttk.Combobox(
             self,
             values=self.methods,
             textvariable=self.current_method,
@@ -80,11 +71,11 @@ class GaussWindow(Tk):
         )
         self.method_combobox.bind('<<ComboboxSelected>>', self.on_change_method)
 
-        # Обозначаем поле вывода ошибок (будет выводиться при возникновении)
-        self.error_label = ttk.Label(self, foreground='#FF0000')
+        # Поле вывода ошибок (будет выводиться при возникновении)
+        self.error_label: ttk.Label = ttk.Label(self, foreground='#FF0000')
 
-        # Создаем фрейм матрицы
-        self.current_matrix_grid = SimpleSlaeInput(
+        # Фрейм матрицы
+        self.current_matrix_grid: SimpleSlaeInput = SimpleSlaeInput(
             self,
             int(self.current_dimension.get()),
             int(self.current_dimension.get()) + 1
@@ -96,8 +87,8 @@ class GaussWindow(Tk):
             pady=10
         )
 
-        # Создаем кнопку, которая будет запускать решение
-        self.solve_button = ttk.Button(self, text='Solve', command=self.on_solve_click)
+        # Кнопка запуска решения
+        self.solve_button: ttk.Button = ttk.Button(self, text='Solve', command=self.on_solve_click)
         self.solve_button.grid(
             row=2,
             column=0,
@@ -105,7 +96,8 @@ class GaussWindow(Tk):
             pady=10
         )
 
-        self.load_button = ttk.Button(self, text='Load from file', command=self.on_load_click)
+        # Кнопка загрузки матрицы из файла
+        self.load_button: ttk.Button = ttk.Button(self, text='Load from file', command=self.on_load_click)
         self.load_button.grid(
             row=2,
             column=1,
@@ -113,10 +105,21 @@ class GaussWindow(Tk):
             pady=10
         )
 
-    # Функция изменения фрейма матрицы при изменении размерности пользователем
+        # Запускаем приложение
+        self.mainloop()
+
     def on_dimension_entry_change(self, *args):
+        '''
+        Триггер динамически изменяет фрейм матрицы при изменении размерности СЛАУ пользователем
+        '''
+
+        # Изменяем текущую размерность
         self.current_dimension.set(self.dimension_entry.get())
+
+        # Удаляем старый фрейм матрицы
         self.current_matrix_grid.destroy()
+
+        # Если размерность не пустая, то пересоздаем фрейм
         if self.current_dimension.get() != '':
             self.current_matrix_grid = SimpleSlaeInput(
                 self,
@@ -128,11 +131,19 @@ class GaussWindow(Tk):
                 padx=10,
                 pady=10
             )
+ 
+    def validate_dimension(self, p) -> bool:
+        '''
+        Функция валидации значения, введенного в поле размерности
+        Принимает введенное значение
+        Возвращает True, если значение корректно, иначе возвращает False
+        '''
 
-    # Функция осуществляет валидацию введенной размерности 
-    def validate_dimension(self, p):
+        # Если введенное значение - целое число в диопазоне от 2 до 7, то возвращаем True
         if str.isdigit(p) and int(p) in range(2, 7):
             return True
+
+        # Если значение не введено, то выводим сообщение о том, что размерность матрицы не введена
         elif p == '':
             self.error_label['text'] = 'Не введена размерность матрицы!'
             self.error_label.grid(
@@ -144,34 +155,49 @@ class GaussWindow(Tk):
             return True
         return False
 
-    # Функция вызывается при нажатии на кнопку загрузки матрицы
-    def on_load_click(self):
-        ftypes = [('Текстовый документ', '*.txt')]
+    def on_load_click(self) -> None:
+        '''
+        Триггер запускает диалоговое окно для выбора файла и считывания из него матрицы
+        '''
+        
+        # Допустимые типы файлов
+        ftypes: list = [('Текстовый документ', '*.txt')]
+
+        # Открываем диалоговое окно
         dlg = filedialog.Open(self, filetypes=ftypes)
         fl = dlg.show()
 
+        # Если файл был выбран, то загружаем матрицу из файла
         if fl != '':
-            matrix = read_from_file(fl)
-            if not validate_matrix(matrix, int(self.current_dimension.get())):
-                mb.showerror('Ошибка', 'Матрица в файле задана некорректно!')
-                return
-            self.current_matrix_grid.set(matrix)
-            return
+            self.current_matrix_grid.set(np.loadtxt(fl, dtype=float))
 
-    # Функция вызывается при нажатии на кнопку решения системы
     def on_solve_click(self):
+        '''
+        Триггер запускает решение системы введенной системы линейных алгебраических уравнений
+        '''
+
+        # Если матрица введена полностью, то вычисляем решение и выводим его пользователю
         if self.current_matrix_grid.check_full_matrix_input():
             answer = self.solver(np.array(self.current_matrix_grid.get(), dtype=float))
-            mb.showinfo('Решение', answer)
+            AnswerWindow(self, answer)
+        # Иначе выводим ошибку о том, что матрицы не введена полностью
         else: 
             mb.showerror('Ошибка', 'Матрица введена не полностью')
 
     def on_change_method(self, event):
+        '''
+        Триггер меняет функцию, находяющую решение СЛАУ в зависимости от выбранного метода
+        '''
+
+        # Если выбранный метод - метод Гаусса, то выбираем его
         if self.current_method.get() == self.methods[0]:
-            self.solver = solve_gauss
+            self.solver = gauss
             return
+
+        # Если выбранный метод - метод релаксации, то выбираем его
         if self.current_method.get() == self.methods[1]:
-            self.solver = solve_sor
+            self.solver = sor
             return
-        self.solver = solve_gauss
-        return
+
+        # Если ни один из методов не выбран, то используем метод гаусса
+        self.solver = gauss
